@@ -18,10 +18,10 @@ var connection = mysql.createConnection({
 // connect to the mysql server and sql database
 connection.connect(function (err) {
     if (err) throw err;
-   managerOptions();
+    managerOptions();
 });
 
-function managerOptions(){
+function managerOptions() {
     inquirer.prompt([
         {
             name: "inventory",
@@ -29,19 +29,124 @@ function managerOptions(){
             message: "Choose an Action:",
             choices: ["View Products for Sale", "View Low Inventory", "Add to Inventory", "Add New Product", "Exit Program"]
         }
-    ]).then(function(selection){
-        switch(answer.inventory){
+    ]).then(function (selection) {
+        switch (selection.inventory) {
             case "View Products for Sale":
+                inventoryList();
                 break;
             case "View Low Inventory":
+                lowInventory();
                 break;
             case "Add to Inventory":
+                orderInventory();
                 break;
             case "Add New Product":
+                addProduct();
                 break;
             case "Exit Program":
                 connection.end();
                 break;
         }
     })
+}
+
+function inventoryList() {
+    var query = "Select * from inventory";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log(res[i]);
+        }
+        managerOptions();
+    })
+}
+
+function lowInventory() {
+    var query = "Select * from inventory where stock_quantity <=" + 100;
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            console.log(res[i]);
+        }
+        managerOptions();
+    })
+}
+
+function addProduct() {
+    inquirer.prompt([
+        {
+            name: "item",
+            type: "input",
+            message: "Name of new product:"
+        },
+        {
+            name: "department",
+            type: "list",
+            message: "Choose products department:",
+            choices: ["technology", "Outdoor", "Sports", "Yard Maintenance"]
+        },
+        {
+            name: "price",
+            type: "input",
+            message: "Price of item:"
+        },
+        {
+            name: "stock",
+            type: "input",
+            message: "How much stock:"
+        }
+    ]).then(function (insert) {
+        connection.query("insert into inventory set ?",
+            {
+                product_name: insert.item,
+                department_name: insert.department,
+                price: insert.price,
+                stock_quantity: insert.stock
+            },
+            function (err) {
+                if (err) throw err;
+                console.log("New product added to inventory.");
+                managerOptions();
+            });
+    });
+};
+function orderInventory() {
+    var query = "Select * from inventory";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        for (var i = 0; i < res.length; i++) {
+            // var productArray = [res[i].product_name]
+            var product = res[i].product_name;
+            
+            // productArray.push(product);
+            // console.log(array)
+        };
+        inquirer.prompt([
+            {
+                name: "item",
+                type: "list",
+                message: "Choose the item you would like to purchase more stock of:",
+                choices: [product],
+            },
+            {
+                name: "stock",
+                type: "input",
+                message: "Amount of stock to purchase:"
+            }
+        ]).then(function(order) {
+            connection.query("update inventory set ? where ?", 
+            [{
+                stock_quantity: order.stock,
+                
+            },
+            {
+                product_name: order.item
+            }],
+            function (err) {
+                if (err) throw err;
+                console.log("Inventory updated.");
+                managerOptions();
+            })
+        })
+    });
 }
