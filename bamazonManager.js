@@ -110,23 +110,23 @@ function addProduct() {
             });
     });
 };
+var productArray = []
 function orderInventory() {
     var query = "Select * from inventory";
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            // var productArray = [res[i].product_name]
+            
             var product = res[i].product_name;
             
-            // productArray.push(product);
-            // console.log(array)
+            productArray.push(product);
         };
         inquirer.prompt([
             {
                 name: "item",
                 type: "list",
                 message: "Choose the item you would like to purchase more stock of:",
-                choices: [product],
+                choices: productArray,
             },
             {
                 name: "stock",
