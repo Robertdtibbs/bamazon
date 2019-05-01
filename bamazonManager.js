@@ -55,7 +55,7 @@ function inventoryList() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log(res[i]);
+            console.log("Item #: " + res[i].item_id + " | " + res[i].product_name + " | Department: " + res[i].department_name + " | Price: " + res[i].price + " | Quantity: " + res[i].stock_quantity)
         }
         managerOptions();
     })
@@ -66,7 +66,7 @@ function lowInventory() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log(res[i]);
+            console.log("Item #: " + res[i].item_id + " | " + res[i].product_name + " | Quantity: " + res[i].stock_quantity);
         }
         managerOptions();
     })
@@ -88,12 +88,24 @@ function addProduct() {
         {
             name: "price",
             type: "input",
-            message: "Price of item:"
+            message: "Price of item:",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         },
         {
             name: "stock",
             type: "input",
-            message: "How much stock:"
+            message: "How much stock:",
+            validate: function (value) {
+                if (isNaN(value) === false) {
+                    return true;
+                }
+                return false;
+            }
         }
     ]).then(function (insert) {
         connection.query("insert into inventory set ?",
@@ -116,9 +128,9 @@ function orderInventory() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            
+
             var product = res[i].product_name;
-            
+
             productArray.push(product);
         };
         inquirer.prompt([
@@ -131,22 +143,35 @@ function orderInventory() {
             {
                 name: "stock",
                 type: "input",
-                message: "Amount of stock to purchase:"
+                message: "Amount of stock to purchase:",
+                validate: function (value) {
+                    if (isNaN(value) === false) {
+                        return true;
+                    }
+                    return false;
+                }
             }
-        ]).then(function(order) {
-            connection.query("update inventory set ? where ?", 
-            [{
-                stock_quantity: order.stock,
-                
-            },
-            {
-                product_name: order.item
-            }],
-            function (err) {
-                if (err) throw err;
-                console.log("Inventory updated.");
-                managerOptions();
-            })
+        ]).then(function (order) {
+            var product = order.item;
+            var stock = order.stock;
+            updateStock(product, stock)
         })
     });
+}
+
+function updateStock(product, stock) {
+
+    connection.query("select * from inventory where product_name =" + product ,
+    function (err, res) {
+        if (err) throw err;
+        itemID = res[0].item_id;
+        console.log(itemID)
+        connection.query("update inventory set stock_quantity = stock_quantity + " + stock + "where item_id = " + itemID,
+        function(err){
+            if(err) throw err;
+            console.log("Inventory updated.");
+            managerOptions();
+        })
+        
+    })
 }

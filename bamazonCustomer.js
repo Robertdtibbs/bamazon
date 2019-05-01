@@ -47,7 +47,7 @@ function purchase() {
     connection.query(query, function (err, res) {
         if (err) throw err;
         for (var i = 0; i < res.length; i++) {
-            console.log("Item #: " + res[i].item_id + " | " + res[i].product_name + " | Price: " + res[i].price)
+            console.log("Item #: " + res[i].item_id + " | " + res[i].product_name + " | Price: " + res[i].price + " | Stock: " + res[i].stock_quantity)
         }
         inquirer.prompt([
             {
@@ -84,17 +84,26 @@ function purchase() {
 
 function submitOrder(itemID, quantity) {
     connection.query("select * from inventory where item_id = " + itemID, function (err, res) {
-        if (err) throw err;
-        if (quantity <= res[0].stock_quantity) {
+        if (err) throw err;   
+        if (quantity <= res[0].stock_quantity) {   
             var cartTotal = res[0].price * quantity;
-            console.log("Request item is in stock!")
+            console.log(res[0].product_name + " is in stock!")
+            console.log("---------------------------")
             console.log("Your total is " + cartTotal);
+            console.log("---------------------------------")
             console.log("Have a great day and come again!")
-            connection.query("Update inventory set stock_quantity = stock_quanity - " + quantity + " where item_id = " + itemID);
+            // console.log(quantity + " and " + itemID) 
+            connection.query("Update inventory set stock_quantity = stock_quantity - " + quantity + " where item_id = " + itemID, function(err){
+                if(err) throw err;
+                customerOptions();
+            });
         }
         else {
-            console.log("I'm sorry we do not have enough stock to fullfill your order.")
+            console.log("************")
+            console.log("I'm sorry we do not have enough stock to fullfill your order.");
+            console.log("")
+            customerOptions();
         }
-        customerOptions();
+        
     })
 }
