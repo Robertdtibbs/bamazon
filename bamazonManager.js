@@ -160,13 +160,12 @@ function orderInventory() {
 }
 
 function updateStock(product, stock) {
-
-    connection.query("select * from inventory where product_name =" + product ,
-    function (err, res) {
+    console.log(stock);
+    console.log(product);
+    connection.query("select * from inventory where product_name = '" + product + "'",
+    function (err) {
         if (err) throw err;
-        itemID = res[0].item_id;
-        console.log(itemID)
-        connection.query("update inventory set stock_quantity = stock_quantity + " + stock + "where item_id = " + itemID,
+        connection.query("update inventory set stock_quantity = stock_quantity + " + stock,
         function(err){
             if(err) throw err;
             console.log("Inventory updated.");
